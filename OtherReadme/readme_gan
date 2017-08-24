@@ -1,0 +1,93 @@
+absa_DATA_DIR=../../../../../opt/ADL_db/Users/sjain/NLP/AdversarialTraining/RNN_generator+ABSA/RNN_generator+ABSA
+
+CUDA_VISIBLE_DEVICES=`/opt/Tools/bin/first-free-gpu|head -1` python adversarial_text/data/gen_vocab.py --output_dir=$absa_DATA_DIR  --dataset=yelpabsa  --yelpabsa_input_dir=../../../../../opt/ADL_db/Users/sjain/NLP/RNN_generator+ABSA --lowercase=True
+
+CUDA_VISIBLE_DEVICES=`/opt/Tools/bin/first-free-gpu|head -1` python adversarial_text/data/gen_data.py --output_dir=$absa_DATA_DIR  --dataset=yelpabsa  --yelpabsa_input_dir=../../../../../opt/ADL_db/Users/sjain/NLP/RNN_generator+ABSA --lowercase=True --label_gain=False
+
+###################################################################################################################################
+
+Word to vec embedding for the vocabulary..stored as npz file
+
+word2vecembeddingpath=../../../../../opt/ADL_db/Users/sjain/NLP/AdversarialTraining/RNN_generator+ABSA/RNN_generator+ABSA/
+CUDA_VISIBLE_DEVICES=`/opt/Tools/bin/first-free-gpu|head -1` python adversarial_text/data/embedding.py --word2vecembeddingpath=$word2vecembeddingpath
+###################################################################################################################################
+Language Model
+LangModel=../../../../../opt/ADL_db/Users/sjain/NLP/AdversarialTraining/RNN_generator+ABSA/RNN_generator+ABSA/models/absa_train_LanguageModel
+CUDA_VISIBLE_DEVICES=`/opt/Tools/bin/first-free-gpu|head -1` python adversarial_text/pretrain.py --train_dir=$LangModel --data_dir=$absa_DATA_DIR --vocab_size=2346 --embedding_dims=300 --rnn_cell_size=512 --num_candidate_samples=1024 --optimizer=adam --batch_size=256 --learning_rate=0.001 --learning_rate_decay_factor=0.9999 --max_steps=3470 --max_grad_norm=1.0 --num_timesteps=400 --keep_prob_emb=0.5 --normalize_embeddings --copt=-msse4.2 --word2vec_initialize=True --word2vecembeddingpath=$word2vecembeddingpath
+
+Test accuracy:
+
+ CUDA_VISIBLE_DEVICES=`/opt/Tools/bin/first-free-gpu|head -1` python adversarial_text/evaluate.py --eval_dir=$EVAL_DIR --checkpoint_dir=$LangModel --eval_data=test --run_once --num_examples=674 --data_dir=$absa_DATA_DIR --vocab_size=2346 --embedding_dims=300 --rnn_cell_size=512 --batch_size=256 --num_timesteps=400 --saveEmbeddingPath=$LangModel --normalize_embeddings
+
+embedding:
+ CUDA_VISIBLE_DEVICES=`/opt/Tools/bin/first-free-gpu|head -1` python adversarial_text/evalute_embedding.py --eval_dir=$EVAL_DIR --checkpoint_dir=$LangModel --eval_data=test --run_once --num_examples=674 --data_dir=$absa_DATA_DIR --vocab_size=2346 --embedding_dims=300 --rnn_cell_size=512 --batch_size=256 --num_timesteps=400 --saveEmbeddingPath=$LangModel --normalize_embeddings
+
+python adversarial_text/test_embedding.py --saveEmbeddingPath=$LangModel --vocabPath=$absa_DATA_DIR
+
+###################################################################################################################################
+
+TRAIN_NON_ADV_DIR=../../../../../opt/ADL_db/Users/sjain/NLP/AdversarialTraining/RNN_generator+ABSA/RNN_generator+ABSA/models/absa_train_NON_ADV_withoutPRetrain
+
+no pretraining required for language model as Google w2v already really good.
+
+CUDA_VISIBLE_DEVICES=`/opt/Tools/bin/first-free-gpu|head -1` python adversarial_text/train_classifier.py --train_dir=$TRAIN_NON_ADV_DIR  --data_dir=$absa_DATA_DIR --vocab_size=2346 --embedding_dims=300 --rnn_cell_size=512 --cl_num_layers=1 --cl_hidden_size=30  --optimizer=adam --batch_size=64 --learning_rate=0.0005 --learning_rate_decay_factor=0.9998 --max_steps=2000 --max_grad_norm=1.0 --num_timesteps=400 --keep_prob_emb=0.5 --normalize_embeddings --word2vec_initialize=True --word2vecembeddingpath=$word2vecembeddingpath
+
+Test accuracy:
+
+ CUDA_VISIBLE_DEVICES=`/opt/Tools/bin/first-free-gpu|head -1` python adversarial_text/evaluate.py --eval_dir=$EVAL_DIR --checkpoint_dir=$TRAIN_NON_ADV_DIR --eval_data=test --run_once --num_examples=3000 --data_dir=$absa_DATA_DIR --vocab_size=2346 --embedding_dims=300 --rnn_cell_size=512 --batch_size=256 --num_timesteps=400 --saveEmbeddingPath=$TRAIN_NON_ADV_DIR --normalize_embeddings
+
+embedding:
+ CUDA_VISIBLE_DEVICES=`/opt/Tools/bin/first-free-gpu|head -1` python adversarial_text/evalute_embedding.py --eval_dir=$EVAL_DIR --checkpoint_dir=$TRAIN_NON_ADV_DIR --eval_data=test --run_once --num_examples=674 --data_dir=$absa_DATA_DIR --vocab_size=2346 --embedding_dims=300 --rnn_cell_size=512 --batch_size=256 --num_timesteps=400 --saveEmbeddingPath=$TRAIN_NON_ADV_DIR --normalize_embeddings
+
+python adversarial_text/test_embedding.py --saveEmbeddingPath=$TRAIN_NON_ADV_DIR --vocabPath=$absa_DATA_DIR
+
+
+###################################################################################################################################
+
+
+
+absa_DATA_DIR=../../../../../opt/ADL_db/Users/sjain/NLP/AdversarialTraining/GAN_1_generator+ABSA/GAN_1_generator+ABSA
+
+CUDA_VISIBLE_DEVICES=`/opt/Tools/bin/first-free-gpu|head -1` python adversarial_text/data/gen_vocab.py --output_dir=$absa_DATA_DIR  --dataset=yelpabsa  --yelpabsa_input_dir=../../../../../opt/ADL_db/Users/sjain/NLP/GAN_1_generator+ABSA --lowercase=True
+
+CUDA_VISIBLE_DEVICES=`/opt/Tools/bin/first-free-gpu|head -1` python adversarial_text/data/gen_data.py --output_dir=$absa_DATA_DIR  --dataset=yelpabsa  --yelpabsa_input_dir=../../../../../opt/ADL_db/Users/sjain/NLP/GAN_1_generator+ABSA --lowercase=True --label_gain=False
+
+###################################################################################################################################
+
+Word to vec embedding for the vocabulary..stored as npz file
+
+word2vecembeddingpath=../../../../../opt/ADL_db/Users/sjain/NLP/AdversarialTraining/GAN_1_generator+ABSA/GAN_1_generator+ABSA/
+CUDA_VISIBLE_DEVICES=`/opt/Tools/bin/first-free-gpu|head -1` python adversarial_text/data/embedding.py --word2vecembeddingpath=$word2vecembeddingpath
+###################################################################################################################################
+Language Model
+LangModel=../../../../../opt/ADL_db/Users/sjain/NLP/AdversarialTraining/GAN_1_generator+ABSA/GAN_1_generator+ABSA/models/absa_train_LanguageModel
+CUDA_VISIBLE_DEVICES=`/opt/Tools/bin/first-free-gpu|head -1` python adversarial_text/pretrain.py --train_dir=$LangModel --data_dir=$absa_DATA_DIR --vocab_size=2230 --embedding_dims=300 --rnn_cell_size=512 --num_candidate_samples=1024 --optimizer=adam --batch_size=256 --learning_rate=0.001 --learning_rate_decay_factor=0.9999 --max_steps=3470 --max_grad_norm=1.0 --num_timesteps=400 --keep_prob_emb=0.5 --normalize_embeddings --copt=-msse4.2 --word2vec_initialize=True --word2vecembeddingpath=$word2vecembeddingpath
+
+Test accuracy:
+
+ CUDA_VISIBLE_DEVICES=`/opt/Tools/bin/first-free-gpu|head -1` python adversarial_text/evaluate.py --eval_dir=$EVAL_DIR --checkpoint_dir=$LangModel --eval_data=test --run_once --num_examples=674 --data_dir=$absa_DATA_DIR --vocab_size=2230 --embedding_dims=300 --rnn_cell_size=512 --batch_size=256 --num_timesteps=400 --saveEmbeddingPath=$LangModel --normalize_embeddings
+
+embedding:
+ CUDA_VISIBLE_DEVICES=`/opt/Tools/bin/first-free-gpu|head -1` python adversarial_text/evalute_embedding.py --eval_dir=$EVAL_DIR --checkpoint_dir=$LangModel --eval_data=test --run_once --num_examples=674 --data_dir=$absa_DATA_DIR --vocab_size=2230 --embedding_dims=300 --rnn_cell_size=512 --batch_size=256 --num_timesteps=400 --saveEmbeddingPath=$LangModel --normalize_embeddings
+
+python adversarial_text/test_embedding.py --saveEmbeddingPath=$LangModel --vocabPath=$absa_DATA_DIR
+
+###################################################################################################################################
+
+TRAIN_NON_ADV_DIR=../../../../../opt/ADL_db/Users/sjain/NLP/AdversarialTraining/GAN_1_generator+ABSA/GAN_1_generator+ABSA/models/absa_train_NON_ADV
+
+no pretraining required for language model as Google w2v already really good.
+
+CUDA_VISIBLE_DEVICES=`/opt/Tools/bin/first-free-gpu|head -1` python adversarial_text/train_classifier.py --train_dir=$TRAIN_NON_ADV_DIR --pretrained_model_dir=$LangModel --data_dir=$absa_DATA_DIR  --vocab_size=2230 --embedding_dims=300 --rnn_cell_size=512 --cl_num_layers=1 --cl_hidden_size=30  --optimizer=adam --batch_size=64 --learning_rate=0.0005 --learning_rate_decay_factor=0.9998 --max_steps=2000 --max_grad_norm=1.0 --num_timesteps=400 --keep_prob_emb=0.5 --normalize_embeddings --word2vec_initialize=True --word2vecembeddingpath=$word2vecembeddingpath
+
+Test accuracy:
+
+ CUDA_VISIBLE_DEVICES=`/opt/Tools/bin/first-free-gpu|head -1` python adversarial_text/evaluate.py --eval_dir=$EVAL_DIR --checkpoint_dir=$TRAIN_NON_ADV_DIR --eval_data=test --run_once --num_examples=3000 --data_dir=$absa_DATA_DIR --vocab_size=2230 --embedding_dims=300 --rnn_cell_size=512 --batch_size=256 --num_timesteps=400 --saveEmbeddingPath=$TRAIN_NON_ADV_DIR --normalize_embeddings
+
+embedding:
+ CUDA_VISIBLE_DEVICES=`/opt/Tools/bin/first-free-gpu|head -1` python adversarial_text/evalute_embedding.py --eval_dir=$EVAL_DIR --checkpoint_dir=$TRAIN_NON_ADV_DIR --eval_data=test --run_once --num_examples=674 --data_dir=$absa_DATA_DIR --vocab_size=2230 --embedding_dims=300 --rnn_cell_size=512 --batch_size=256 --num_timesteps=400 --saveEmbeddingPath=$TRAIN_NON_ADV_DIR --normalize_embeddings
+
+python adversarial_text/test_embedding.py --saveEmbeddingPath=$TRAIN_NON_ADV_DIR --vocabPath=$absa_DATA_DIR
+
+
+###################################################################################################################################
